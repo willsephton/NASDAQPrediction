@@ -26,7 +26,6 @@ import streamlit as st
 
 with open("dataset/list_of_tickers.txt", "r") as file:
     tickers = file.read().splitlines()
-    
 
 def gatherStockDataPCAandKMeans():
     stockData = yf.download(tickers, period='1y', interval='1d', group_by='tickers') # Downloads the nasdaq stock data
@@ -414,8 +413,7 @@ def createSignals(forecast):
 def main():
     st.title('Machine Learning Assessment Application')
 
-    chosen_tickers = ["META", "AVGO", "BKNG", "TSLA"]
-    chosen_ticker = st.sidebar.selectbox('Select a Ticker', chosen_tickers)
+    chosen_ticker = st.sidebar.selectbox('Select a Ticker', tickers)
 
     option = st.sidebar.selectbox(
         'Select an Option',
