@@ -411,7 +411,7 @@ def createSignals(forecast):
 
 
 def main():
-    st.title('Machine Learning Assessment Application')
+    st.title('Stock Prediction and Forecasting')
 
     chosen_ticker = st.sidebar.selectbox('Select a Ticker', tickers)
 
@@ -421,14 +421,14 @@ def main():
     )
 
     if option == "Home":
-        st.subheader('COM624 - Will Sephton')
-        st.write("My chosen stocks from the 4 clusters are:")
-        st.write("Meta Platforms Inc - META")
-        st.write("Broadcom Inc - AVGO")
-        st.write("Booking Holdings Inc - BKNG")
-        st.write("Tesla Inc - TSLA")
-        st.write("In order to choose these stocks I created a random number generator in Python and assigned each stock in a cluster with a number.")
-        st.write("All data is loaded in real time and downloaded whenever there is an option change or ticker change.")
+        st.subheader('This program was coded and created by Will Sephton')
+        st.write("To use the application:")
+        st.write("The sidebar allows you to choose one of the NASDAQ 100 stock tickers")
+        st.write("PCA and Kmeans tab is not ticker specfic and is just the NASDAQ data ran through those algorithms")
+        st.write("The correlation tab shows the correlation coefficient for the selected stock")
+        st.write("The EDA tab runs exploratory data analysis on the selected stock")
+        st.write("The Prophet, ARIMA, LSTM, and Linear Regression Forecast tabs runs predictions using those machine learning algorithms on the selected stock")
+        st.write("All data is loaded in real time and one year of data is downloaded whenever there is an option change or ticker change.")
 
     
     if option == 'PCA and Kmeans clustering':
