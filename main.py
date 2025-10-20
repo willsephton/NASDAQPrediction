@@ -28,37 +28,27 @@ import streamlit as st
 with open("dataset/list_of_tickers.txt", "r") as file:
     tickers = file.read().splitlines()
 
-@st.cache_data(show_spinner=True)
-def safe_yf_download(tickers, period='1y', interval='1d'):
-    all_data = {}
-    for ticker in tickers:
-        try:
-            df = yf.download(ticker, period=period, interval=interval, progress=False, threads=False)
-            if not df.empty and 'Close' in df.columns:
-                all_data[ticker] = df['Close']
-            else:
-                st.warning(f"⚠️ No data for {ticker}")
-        except Exception as e:
-            st.warning(f"❌ Failed to fetch {ticker}: {e}")
-        time.sleep(0.3)  # polite delay to avoid API throttling
-    return pd.DataFrame(all_data)
-
-
-# ! Data Retrieval (Fixed)
 def gatherStockDataPCAandKMeans():
-    closeData = safe_yf_download(tickers, period='1y', interval='1d')
+    stockData = yf.download(tickers, period='1y', interval='1d', group_by='tickers') # Downloads the nasdaq stock data
+    closeData = stockData.xs('Close', level=1, axis=1)
+
     closeData = closeData.T
-    removedRows = closeData.dropna(axis=1)
+
+    removedRows = closeData.dropna(axis=1) #Cleans rows with empty cells
+
     return removedRows
 
 def gatherStockDataCorrelationEDA():
-    closeData = safe_yf_download(tickers, period='1y', interval='1d')
-    removedRows = closeData.dropna(axis=1)
+    stockData = yf.download(tickers, period='1y', interval='1d', group_by='tickers') # Downloads the nasdaq stock data
+    closeData = stockData.xs('Close', level=1, axis=1)
+
+    removedRows = closeData.dropna(axis=1) #Cleans rows with empty cells
+
     return removedRows
 
 def gatherStockDataForProphet():
-    closeData = safe_yf_download(tickers, period='1y', interval='1d')
-    return closeData
+    stockData = yf.download(tickers, period='1y', interval='1d')['Close']
+    return stockData
 
 
 # ! PCA
