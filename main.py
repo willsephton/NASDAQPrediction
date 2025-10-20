@@ -28,27 +28,21 @@ import streamlit as st
 with open("dataset/list_of_tickers.txt", "r") as file:
     tickers = file.read().splitlines()
 
-# Helper function for safer Yahoo Finance batch fetching
-def safe_yf_download(tickers, period='1y', interval='1d', batch_size=10, sleep_time=1):
+@st.cache_data(show_spinner=True)
+def safe_yf_download(tickers, period='1y', interval='1d'):
     all_data = {}
-    for i in range(0, len(tickers), batch_size):
-        batch = tickers[i:i+batch_size]
+    for ticker in tickers:
         try:
-            data = yf.download(batch, period=period, interval=interval, group_by='ticker', progress=False, threads=False)
-            if isinstance(data.columns, pd.MultiIndex):  # Handle multi-ticker data
-                for ticker in batch:
-                    try:
-                        df = data[ticker]['Close'].dropna()
-                        if not df.empty:
-                            all_data[ticker] = df
-                    except KeyError:
-                        st.warning(f"⚠️ Missing data for {ticker}")
+            df = yf.download(ticker, period=period, interval=interval, progress=False, threads=False)
+            if not df.empty and 'Close' in df.columns:
+                all_data[ticker] = df['Close']
             else:
-                all_data[batch[0]] = data['Close'].dropna()
+                st.warning(f"⚠️ No data for {ticker}")
         except Exception as e:
-            st.warning(f"❌ Error fetching {batch}: {e}")
-        time.sleep(sleep_time)  # Avoid Yahoo rate limit
+            st.warning(f"❌ Failed to fetch {ticker}: {e}")
+        time.sleep(0.3)  # polite delay to avoid API throttling
     return pd.DataFrame(all_data)
+
 
 # ! Data Retrieval (Fixed)
 def gatherStockDataPCAandKMeans():
