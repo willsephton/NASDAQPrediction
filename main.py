@@ -8,6 +8,7 @@ from prophet import Prophet
 import numpy as np
 import seaborn as sns
 import tensorflow as tf
+import time
 
 import pickle
 from sklearn.model_selection import train_test_split
@@ -27,27 +28,43 @@ import streamlit as st
 with open("dataset/list_of_tickers.txt", "r") as file:
     tickers = file.read().splitlines()
 
+# Helper function for safer Yahoo Finance batch fetching
+def safe_yf_download(tickers, period='1y', interval='1d', batch_size=10, sleep_time=1):
+    all_data = {}
+    for i in range(0, len(tickers), batch_size):
+        batch = tickers[i:i+batch_size]
+        try:
+            data = yf.download(batch, period=period, interval=interval, group_by='ticker', progress=False, threads=False)
+            if isinstance(data.columns, pd.MultiIndex):  # Handle multi-ticker data
+                for ticker in batch:
+                    try:
+                        df = data[ticker]['Close'].dropna()
+                        if not df.empty:
+                            all_data[ticker] = df
+                    except KeyError:
+                        st.warning(f"⚠️ Missing data for {ticker}")
+            else:
+                all_data[batch[0]] = data['Close'].dropna()
+        except Exception as e:
+            st.warning(f"❌ Error fetching {batch}: {e}")
+        time.sleep(sleep_time)  # Avoid Yahoo rate limit
+    return pd.DataFrame(all_data)
+
+# ! Data Retrieval (Fixed)
 def gatherStockDataPCAandKMeans():
-    stockData = yf.download(tickers, period='1y', interval='1d', group_by='tickers') # Downloads the nasdaq stock data
-    closeData = stockData.xs('Close', level=1, axis=1)
-
+    closeData = safe_yf_download(tickers, period='1y', interval='1d')
     closeData = closeData.T
-
-    removedRows = closeData.dropna(axis=1) #Cleans rows with empty cells
-
+    removedRows = closeData.dropna(axis=1)
     return removedRows
 
 def gatherStockDataCorrelationEDA():
-    stockData = yf.download(tickers, period='1y', interval='1d', group_by='tickers') # Downloads the nasdaq stock data
-    closeData = stockData.xs('Close', level=1, axis=1)
-
-    removedRows = closeData.dropna(axis=1) #Cleans rows with empty cells
-
+    closeData = safe_yf_download(tickers, period='1y', interval='1d')
+    removedRows = closeData.dropna(axis=1)
     return removedRows
 
 def gatherStockDataForProphet():
-    stockData = yf.download(tickers, period='1y', interval='1d')['Close']
-    return stockData
+    closeData = safe_yf_download(tickers, period='1y', interval='1d')
+    return closeData
 
 
 # ! PCA
