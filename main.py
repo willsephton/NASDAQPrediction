@@ -24,10 +24,8 @@ import streamlit as st
 
 # ! Data Retrival
 
-#with open("dataset/list_of_tickers.txt", "r") as file:
-    #tickers = file.read().splitlines()
-
-tickers = ["AAPL", "MSFT", "AMZN", "NVDA", "META", "AVGO", "GOOGL", "GOOG", "TSLA", "ADBE"] 
+with open("dataset/list_of_tickers.txt", "r") as file:
+    tickers = file.read().splitlines()
 
 def gatherStockDataPCAandKMeans():
     stockData = yf.download(tickers, period='1y', interval='1d', group_by='tickers') # Downloads the nasdaq stock data
