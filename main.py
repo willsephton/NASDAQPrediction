@@ -9,6 +9,7 @@ import numpy as np
 import seaborn as sns
 import tensorflow as tf
 import time
+import requests
 
 import pickle
 from sklearn.model_selection import train_test_split
@@ -25,8 +26,32 @@ import streamlit as st
 
 # ! Data Retrival
 
-with open("dataset/list_of_tickers.txt", "r") as file:
-    tickers = file.read().splitlines()
+def fetch_nasdaq_100_tickers():
+    url = "https://en.wikipedia.org/wiki/NASDAQ-100"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/128.0.0.0 Safari/537.36"
+    }
+
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+
+    tables = pd.read_html(response.text)
+    nasdaq_table = next(
+        t for t in tables if any(c in t.columns for c in ["Ticker", "Symbol"])
+    )
+
+    ticker_col = "Ticker" if "Ticker" in nasdaq_table.columns else "Symbol"
+    tickers = nasdaq_table[ticker_col].dropna().tolist()
+    return tickers
+
+
+tickers = fetch_nasdaq_100_tickers()
+print(f"There are {len(tickers)} tickers")
+
+#with open("dataset/list_of_tickers.txt", "r") as file:
+    #tickers = file.read().splitlines()
 
 def gatherStockDataPCAandKMeans():
     stockData = yf.download(tickers, period='1y', interval='1d', group_by='tickers') # Downloads the nasdaq stock data
